@@ -19,12 +19,12 @@ func main() {
    	// Next, craete our client
    	api := vebra.Create(datafeedID, "user", "password", ts)
     
-   	// Set the way we want to access the data. I've
-   	// included 3 methods:
-   	// * NewRemoteFileGetter - queries the Vebra API
-   	// * NewRemoteFileGetterLocalWriter - queries the Vebra API but writes the 
+    // Set the way we want to access the data. I've
+    // included 3 methods:
+    // * NewRemoteFileGetter - queries the Vebra API
+    // * NewRemoteFileGetterLocalWriter - queries the Vebra API but writes the 
     //   results to file locally
-  	// * NewLocalFileGetter - Reads in the files written out by 
+    // * NewLocalFileGetter - Reads in the files written out by 
     //   NewRemoteFileGetterLocalWriter. Good for testing.
     
    	api.GetDataFunc = vebra.NewRemoteFileGetter()
