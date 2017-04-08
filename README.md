@@ -2,7 +2,7 @@
 Package for querying the Vebra v10 API, implemented in Golang
 
 ## Example Usage
-
+``` go
     package main
     
     import(
@@ -63,3 +63,4 @@ Package for querying the Vebra v10 API, implemented in Golang
     		panic(err)
     	}
     }
+```
