@@ -1,7 +1,6 @@
 # vebra-api
 Package for querying the Vebra v10 API, implemented in Golang
 
-<<<<<<< HEAD
 ## Example Usage
 
 ``` go
