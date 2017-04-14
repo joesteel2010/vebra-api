@@ -5,7 +5,7 @@ type ChangedFilesSummaries struct {
 }
 
 type ChangedFileSummary struct {
-	FileId      int    `xml:"file_id"`
+	FileID      int    `xml:"file_id"`
 	FilePropId  int    `xml:"file_propid"`
 	LastChanged string `xml:"updated"`
 	IsDeleted   bool   `xml:"deleted"`

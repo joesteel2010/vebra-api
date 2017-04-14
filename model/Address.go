@@ -1,6 +1,12 @@
 package model
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type Address struct {
+	gorm.Model
+	PropertyID     int
 	Name           string `xml:"name"`
 	Street         string `xml:"street"`
 	Locality       string `xml:"locality"`

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql/driver"
 	"encoding/xml"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ type Properties struct {
 }
 
 type SanitizedInt int
+
 type SanitizedDate time.Time
 
 func (si *SanitizedInt) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -33,6 +35,16 @@ func (si *SanitizedInt) UnmarshalXML(d *xml.Decoder, start xml.StartElement) err
 }
 
 type SanitizedBool bool
+
+func (u SanitizedInt) Value() (driver.Value, error)  { return int64(u), nil }
+func (u SanitizedDate) Value() (driver.Value, error) { return time.Time(u), nil }
+func (u SanitizedBool) Value() (driver.Value, error) { return bool(u), nil }
+func (u *SanitizedInt) Scan(value interface{}) error { *u = SanitizedInt(value.(int64)); return nil }
+func (u *SanitizedDate) Scan(value interface{}) error {
+	*u = SanitizedDate(value.(time.Time))
+	return nil
+}
+func (u *SanitizedBool) Scan(value interface{}) error { *u = SanitizedBool(value.(bool)); return nil }
 
 func (si *SanitizedBool) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var value string
@@ -91,7 +103,7 @@ func (si *SanitizedDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (e
 
 type Property struct {
 	ID             int           `xml:"id,attr"`
-	PropertyID     string        `xml:"propertyid,attr"`
+	PropertyID     int           `xml:"propertyid,attr"`
 	System         string        `xml:"system,attr"`
 	Firmid         string        `xml:"firmid,attr"`
 	Branchid       string        `xml:"branchid,attr"`
@@ -104,7 +116,7 @@ type Property struct {
 	LettingsFee    string        `xml:"lettingsfee"`
 	RmQualifier    SanitizedInt  `xml:"rm_qualifier"`
 	Available      string        `xml:"available"`
-	Uploaded       SanitizedDate `xml:"uploaded"`
+	Uploaded       SanitizedDate `xml:"uploaded" gorm:"type:datetime"`
 	Longitude      float32       `xml:"longitude"`
 	Latitude       float32       `xml:"latitude"`
 	Easting        SanitizedInt  `xml:"easting"`
@@ -126,9 +138,9 @@ type Property struct {
 	Bathrooms      SanitizedInt  `xml:"bathrooms"`
 	UserField1     string        `xml:"userfield1"`
 	UserField2     SanitizedInt  `xml:"userfield2"`
-	SoldDate       SanitizedDate `xml:"solddate"`
-	LeaseEnd       SanitizedDate `xml:"leaseend"`
-	Instructed     SanitizedDate `xml:"instructed"`
+	SoldDate       SanitizedDate `xml:"solddate" gorm:"type:datetime"`
+	LeaseEnd       SanitizedDate `xml:"leaseend" gorm:"type:datetime"`
+	Instructed     SanitizedDate `xml:"instructed" gorm:"type:datetime"`
 	SoldPrice      SanitizedInt  `xml:"soldprice"`
 	Garden         SanitizedBool `xml:"garden"`
 	Parking        SanitizedBool `xml:"parking"`
@@ -137,11 +149,11 @@ type Property struct {
 	Commission     string        `xml:"commission"`
 	Area           Area          `xml:"area"`
 	LandArea       LandArea      `xml:"landarea"`
-	Description    string        `xml:"description"`
+	Description    string        `xml:"description" gorm:"type:varchar(2056)"`
 	Hip            Hip           `xml:"hip"`
-	Paragraphs     Paragraphs    `xml:"paragraphs"`
-	Bullets        Bullets       `xml:"bullets"`
-	Files          Files         `xml:"files"`
-	QueriedAt      SanitizedDate `xml:"queriedat"` // To implement - date-time retreived.
-	LocalFiles     Files         // Path used for local storage
+	Paragraphs     []Paragraph   `xml:"paragraphs>paragraph"`
+	Bullets        []Bullet      `xml:"bullets>bullet"`
+	Files          []File        `xml:"files>file"`
+	QueriedAt      SanitizedDate `xml:"queriedat" gorm:"type:datetime"` // To implement - date-time retreived.
+	LocalFiles     []File        // Path used for local storage
 }

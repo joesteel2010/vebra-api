@@ -1,9 +1,8 @@
 package model
 
-type LandArea struct {
-	Area `xml:"landarea"`
-}
+import "github.com/jinzhu/gorm"
 
-type LandAreas struct {
-	Landareas []Area `xml:"landarea"`
+type LandArea struct {
+	gorm.Model
+	Area `xml:"landarea"`
 }

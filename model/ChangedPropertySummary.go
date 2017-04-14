@@ -7,7 +7,7 @@ import (
 )
 
 type ChangedPropertySummary struct {
-	PropID      int    `xml:"propid"`
+	PropertyID  int    `xml:"propid"`
 	LastChanged string `xml:"lastchanged"`
 	Url         string `xml:"url"`
 	LastAction  string `xml:"action"`

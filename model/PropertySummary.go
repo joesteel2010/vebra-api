@@ -1,7 +1,12 @@
 package model
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type PropertySummary struct {
-	PropID      int    `xml:"prop_id"`
+	gorm.Model
+	PropertyID  int    `xml:"prop_id"`
 	LastChanged string `xml:"lastchanged"`
 	Url         string `xml:"url"`
 }

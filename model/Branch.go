@@ -1,6 +1,9 @@
 package model
 
+import "github.com/jinzhu/gorm"
+
 type Branch struct {
+	gorm.Model
 	ClientID  int           `xml:"clientid"`
 	FirmID    int           `xml:"FirmID"`
 	BranchID  int           `xml:"BranchID"`
@@ -13,8 +16,4 @@ type Branch struct {
 	Phone     string        `xml:"phone"`
 	Email     string        `xml:"email"`
 	QueriedAt SanitizedDate `xml:"queriedat"`
-}
-
-type Branches struct {
-	Branches []Branch `xml:"branch"`
 }
