@@ -1,11 +1,14 @@
 package model
 
 type Paragraph struct {
-	PropertyID uint
-	ID         SanitizedInt `xml:"id,attr"`
-	Type       SanitizedInt `xml:"type,attr"`
-	Name       string       `xml:"name"`
-	File       string       `xml:"file"`
-	Dimension  Dimension    `xml:"dimensions"`
-	Text       string       `xml:"text"`
+	ID          uint `gorm:"primary_key"`
+	PropertyID  uint
+	ParagraphID int          `xml:"id,attr"`
+	Type        SanitizedInt `xml:"type,attr" json:"Type"`
+	Name        string       `xml:"name"`
+	File        string       `xml:"file"`
+	Metric      string       `xml:"dimensions>metric"`
+	Imperial    string       `xml:"dimensions>imperial"`
+	Mixed       string       `xml:"dimensions>mixed"`
+	Text        string       `xml:"text" sql:"type:text"`
 }

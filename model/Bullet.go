@@ -1,7 +1,12 @@
 package model
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type Bullet struct {
+	gorm.Model
 	PropertyID uint
-	ID         SanitizedInt `xml:"id,attr"`
+	BulletID   SanitizedInt `xml:"id,attr" json:"ID"`
 	Value      string       `xml:",chardata"`
 }

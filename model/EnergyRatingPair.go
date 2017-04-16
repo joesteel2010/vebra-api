@@ -2,8 +2,13 @@ package model
 
 import "github.com/jinzhu/gorm"
 
-type EnergyRatingPair struct {
+type EnergyEfficiency struct {
 	gorm.Model
-	Current   SanitizedInt
-	Potential SanitizedInt
+	Current   SanitizedInt `xml:"current"`
+	Potential SanitizedInt `xml:"potential"`
+}
+
+type EnvironmentalImpact struct {
+	gorm.Model
+	EnergyEfficiency
 }
