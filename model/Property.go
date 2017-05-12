@@ -39,7 +39,12 @@ type SanitizedBool bool
 
 func (u SanitizedInt) Value() (driver.Value, error)  { return int64(u), nil }
 func (u SanitizedDate) Value() (driver.Value, error) { return time.Time(u), nil }
-func (u SanitizedBool) Value() (driver.Value, error) { return bool(u), nil }
+func (u SanitizedBool) Value() (driver.Value, error) {
+	if bool(u) {
+		return int64(1), nil
+	}
+	return int64(0), nil
+}
 
 func (u *SanitizedInt) Scan(value interface{}) error {
 	switch value.(type) {
