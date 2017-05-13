@@ -6,7 +6,7 @@ import (
 
 type Bullet struct {
 	gorm.Model
-	PropertyID uint
-	BulletID   SanitizedInt `xml:"id,attr" json:"ID"`
+	PropertyID uint         `gorm:"primary_key" sql:"type:int"`
+	BulletID   SanitizedInt `xml:"id,attr" json:"ID" gorm:"primary_key" sql:"type:int"`
 	Value      string       `xml:",chardata"`
 }
