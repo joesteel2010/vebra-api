@@ -1,8 +1,6 @@
 package model
 
-import "github.com/jinzhu/gorm"
-
 type LandArea struct {
-	gorm.Model
-	Area `xml:"landarea"`
+	PropertyID uint `gorm:"primary_key" sql:"type:int"`
+	Area       `xml:"landarea"`
 }

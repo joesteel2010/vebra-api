@@ -1,10 +1,14 @@
 package model
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 type Reference struct {
-	gorm.Model
-	PropertyID int
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time
+	PropertyID uint   `gorm:"primary_key" sql:"type:int"`
 	Agents     string `xml:"agents"`
 	Software   string `xml:"software"`
 }

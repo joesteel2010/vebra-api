@@ -156,7 +156,10 @@ func (si *SanitizedDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (e
 }
 
 type Property struct {
-	ID                  int                 `xml:"id,attr"`
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	DeletedAt           *time.Time
+	ID                  uint                `xml:"id,attr"`
 	PropertyID          int                 `xml:"propertyid,attr"`
 	System              string              `xml:"system,attr"`
 	Firmid              string              `xml:"firmid,attr"`

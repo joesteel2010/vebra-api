@@ -1,7 +1,11 @@
 package model
 
+import "time"
+
 type Paragraph struct {
-	ID          uint
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 	PropertyID  uint         `gorm:"primary_key" sql:"type:int"`
 	ParagraphID int          `xml:"id,attr" gorm:"primary_key" sql:"type:int"`
 	Type        SanitizedInt `xml:"type,attr" json:"Type"`

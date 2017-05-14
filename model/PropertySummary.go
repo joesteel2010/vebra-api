@@ -1,12 +1,14 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type PropertySummary struct {
-	gorm.Model
-	PropertyID  int    `xml:"prop_id"`
+	PropertyID  uint `xml:"prop_id" gorm:"primary_key" sql:"type:int"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 	LastChanged string `xml:"lastchanged"`
 	Url         string `xml:"url"`
 }

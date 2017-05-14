@@ -1,10 +1,14 @@
 package model
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 type StreetView struct {
-	gorm.Model
-	PropertyID   uint
+	PropertyID   uint `gorm:"primary_key" sql:"type:int"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time
 	PovLatitude  float32
 	PovLongitude float32
 	PovPitch     float32
