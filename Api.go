@@ -11,7 +11,8 @@ import (
 	"path"
 	"strings"
 	"time"
-	"vebra-api/model"
+
+	"github.com/joesteel2010/vebra-api/model"
 )
 
 var host = `http://webservices.vebra.com`

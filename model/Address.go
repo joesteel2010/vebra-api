@@ -1,12 +1,14 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Address struct {
-	gorm.Model
-	PropertyID     int
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time
+	PropertyID     uint   `gorm:"primary_key" sql:"type:int"`
 	Name           string `xml:"name"`
 	Street         string `xml:"street"`
 	Locality       string `xml:"locality"`

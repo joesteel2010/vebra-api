@@ -39,7 +39,12 @@ type SanitizedBool bool
 
 func (u SanitizedInt) Value() (driver.Value, error)  { return int64(u), nil }
 func (u SanitizedDate) Value() (driver.Value, error) { return time.Time(u), nil }
-func (u SanitizedBool) Value() (driver.Value, error) { return bool(u), nil }
+func (u SanitizedBool) Value() (driver.Value, error) {
+	if bool(u) {
+		return int64(1), nil
+	}
+	return int64(0), nil
+}
 
 func (u *SanitizedInt) Scan(value interface{}) error {
 	switch value.(type) {
@@ -161,7 +166,10 @@ func (si *SanitizedDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (e
 }
 
 type Property struct {
-	ID                  int                 `xml:"id,attr"`
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	DeletedAt           *time.Time
+	ID                  uint                `xml:"id,attr"`
 	PropertyID          int                 `xml:"propertyid,attr"`
 	System              string              `xml:"system,attr"`
 	Firmid              string              `xml:"firmid,attr"`

@@ -1,12 +1,14 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Price struct {
-	gorm.Model
-	PropertyID uint
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time
+	PropertyID uint         `gorm:"primary_key" sql:"type:int"`
 	Qualifier  string       `xml:"qualifier,attr"`
 	Currency   string       `xml:"currency,attr"`
 	Display    string       `xml:"display,attr"`

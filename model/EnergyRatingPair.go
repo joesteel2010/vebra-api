@@ -1,14 +1,18 @@
 package model
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 type EnergyEfficiency struct {
-	gorm.Model
-	Current   SanitizedInt `xml:"current"`
-	Potential SanitizedInt `xml:"potential"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time
+	PropertyID int          `gorm:"primary_key" sql:"type:int"`
+	Current    SanitizedInt `xml:"current"`
+	Potential  SanitizedInt `xml:"potential"`
 }
 
 type EnvironmentalImpact struct {
-	gorm.Model
 	EnergyEfficiency
 }

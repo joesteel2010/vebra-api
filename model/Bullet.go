@@ -1,12 +1,12 @@
 package model
 
-import (
-	"github.com/jinzhu/gorm"
-)
+import "time"
 
 type Bullet struct {
-	gorm.Model
-	PropertyID uint
-	BulletID   SanitizedInt `xml:"id,attr" json:"ID"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time
+	PropertyID uint         `gorm:"primary_key" sql:"type:int"`
+	BulletID   SanitizedInt `xml:"id,attr" json:"ID" gorm:"primary_key" sql:"type:int"`
 	Value      string       `xml:",chardata"`
 }
