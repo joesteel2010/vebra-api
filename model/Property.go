@@ -80,12 +80,22 @@ func (u *SanitizedDate) Scan(value interface{}) error {
 }
 
 func (u *SanitizedBool) Scan(value interface{}) error {
-	s := value.([]uint8)
-	val, err := strconv.Atoi(string(s))
+	var val int
+	var err error
+
+	switch value.(type) {
+	case []uint8:
+		s := value.([]uint8)
+		val, err = strconv.Atoi(string(s))
+	case int64:
+		s := value.(int64)
+		val = int(s)
+	}
 
 	if err != nil {
-		return fmt.Errorf("Error converting to sanitized int: %s", err)
+		return fmt.Errorf("Error converting to sanitized bool: %s", err)
 	}
+
 	if val == 1 {
 		*u = SanitizedBool(true)
 		return nil
