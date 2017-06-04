@@ -8,7 +8,7 @@ type Dimension struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	DeletedAt  *time.Time
-	PropertyID uint   `gorm:"primary_key" sql:"type:int"`
+	PropertyID uint   `gorm:"primary_key" sql:"type:int(10) unsigned"`
 	Metric     string `xml:"metric"`
 	Imperial   string `xml:"imperial"`
 	Mixed      string `xml:"mixed"`
