@@ -17,6 +17,10 @@ type SanitizedInt int
 
 type SanitizedDate time.Time
 
+func (si *SanitizedInt) AsInt() int {
+	return int(*si)
+}
+
 func (si *SanitizedInt) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var value string
 	// Read tag content into value
