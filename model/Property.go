@@ -169,14 +169,13 @@ type Property struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	DeletedAt           *time.Time
-	ID                  uint                `xml:"id,attr" gorm:"primary_key"`
-	PropertyID          int                 `xml:"propertyid,attr" gorm:"unique_index" sql:"type:int(10) unsigned"`
+	ID                  uint                `xml:"id,attr" gorm:"primary_key" sql:"type:int(10) unsigned`
 	System              string              `xml:"system,attr"`
 	Firmid              string              `xml:"firmid,attr"`
 	Branchid            string              `xml:"branchid,attr"`
 	Database            string              `xml:"database,attr"`
 	Featured            string              `xml:"featured,attr"`
-	AgentReference      Reference           `xml:"reference"` // to implement
+	AgentReference      Reference           `xml:"reference"`
 	Address             Address             `xml:"address"`
 	Price               Price               `xml:"price"`
 	RentalFees          string              `xml:"rentalfees"`
@@ -223,5 +222,4 @@ type Property struct {
 	Bullets             []Bullet            `xml:"bullets>bullet"`
 	Files               []File              `xml:"files>file"`
 	QueriedAt           SanitizedDate       `xml:"queriedat" gorm:"type:datetime"` // To implement - date-time retreived.
-	LocalFiles          []File              // Path used for local storage
 }
