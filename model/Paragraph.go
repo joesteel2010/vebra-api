@@ -6,7 +6,7 @@ type Paragraph struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   *time.Time
-	PropertyID  uint         `gorm:"primary_key" sql:"type:int"`
+	PropertyID  uint         `gorm:"primary_key" sql:"type:int(10) unsigned"`
 	ParagraphID int          `xml:"id,attr" gorm:"primary_key" sql:"type:int"`
 	Type        SanitizedInt `xml:"type,attr" json:"Type"`
 	Name        string       `xml:"name"`

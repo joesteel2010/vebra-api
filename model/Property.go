@@ -190,8 +190,8 @@ type Property struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	DeletedAt           *time.Time
-	ID                  uint                `xml:"id,attr"`
-	PropertyID          int                 `xml:"propertyid,attr"`
+	ID                  uint                `xml:"id,attr" gorm:"primary_key"`
+	PropertyID          int                 `xml:"propertyid,attr" gorm:"unique_index" sql:"type:int(10) unsigned"`
 	System              string              `xml:"system,attr"`
 	Firmid              string              `xml:"firmid,attr"`
 	Branchid            string              `xml:"branchid,attr"`
