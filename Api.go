@@ -156,7 +156,7 @@ func (api *API) GetPropertyList(ClientID int) (properties *model.PropertySummari
 	return properties, err
 }
 
-func (api *API) GetProperty(clientId int, propertyId int) (property *model.Property, err error) {
+func (api *API) GetProperty(clientId int, propertyId uint) (property *model.Property, err error) {
 	property = &model.Property{}
 	if err = api.GetDataFunc(api, fmt.Sprintf(`branch/%d/property/%d`, clientId, propertyId), property); err != nil {
 		return nil, err
