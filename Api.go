@@ -111,7 +111,7 @@ func (api *API) basicAuth(callUrl string) (res *http.Response, err error) {
 	if token := res.Header.Get("Token"); token != "" {
 		err = api.tokenStorage.Save(token)
 	}
-	return res, nil
+	return res, err
 }
 
 // GetBranches returns an array of branches
