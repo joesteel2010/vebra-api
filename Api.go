@@ -55,7 +55,7 @@ func (api API) execute(url string, secondAttempt bool) (res *http.Response, err 
 	// START
 	callUrl := fmt.Sprintf("%s/%s/%s", host, api.baseUrl, url)
 
-	if res, err = api.tokenAuth(callUrl); err != nil {
+	if res, err = api.tokenAuth(callUrl, nil); err != nil {
 		return res, err
 	}
 
@@ -68,7 +68,7 @@ func (api API) execute(url string, secondAttempt bool) (res *http.Response, err 
 		}
 
 		// try again with basic auth
-		if res, err = api.basicAuth(callUrl); err != nil {
+		if res, err = api.basicAuth(callUrl, nil); err != nil {
 			return nil, err
 		} else if res.StatusCode == http.StatusUnauthorized {
 			return nil, fmt.Errorf("Unauthorized - error authenticating. An active token hasn't expired or invalid credentials have been provided")
@@ -79,15 +79,52 @@ func (api API) execute(url string, secondAttempt bool) (res *http.Response, err 
 	}
 }
 
-func (api *API) tokenAuth(callUrl string) (res *http.Response, err error) {
+func (api API) executeSince(url string, secondAttempt bool, since *time.Time) (res *http.Response, err error) {
+	if url == "" {
+		return nil, fmt.Errorf("URL must be a non-empty string")
+	}
+
+	// START
+	callUrl := fmt.Sprintf("%s/%s/%s", host, api.baseUrl, url)
+
+	if res, err = api.tokenAuth(callUrl, since); err != nil {
+		return res, err
+	}
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		return res, nil
+	case http.StatusUnauthorized:
+		if secondAttempt {
+			return nil, fmt.Errorf("Unauthorized")
+		}
+
+		// try again with basic auth
+		if res, err = api.basicAuth(callUrl, since); err != nil {
+			return nil, err
+		} else if res.StatusCode == http.StatusUnauthorized {
+			return nil, fmt.Errorf("Unauthorized - error authenticating. An active token hasn't expired or invalid credentials have been provided")
+		}
+		return res, err
+	default:
+		return nil, fmt.Errorf("ERR: %s", http.StatusText(res.StatusCode))
+	}
+}
+
+func (api *API) tokenAuth(callUrl string, since *time.Time) (res *http.Response, err error) {
 	loadedToken, err := api.tokenStorage.Load()
 
 	if err != nil {
-		return api.basicAuth(callUrl)
+		return api.basicAuth(callUrl, since)
 	}
 
 	req, _ := http.NewRequest("GET", callUrl, nil)
 	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", string(loadedToken)))
+
+	if since != nil {
+		req.Header.Add("If-Modified-Since", since.Format(time.RFC1123))
+	}
+
 	res, err = api.client.Do(req)
 
 	if err != nil {
@@ -97,10 +134,13 @@ func (api *API) tokenAuth(callUrl string) (res *http.Response, err error) {
 	return res, nil
 }
 
-func (api *API) basicAuth(callUrl string) (res *http.Response, err error) {
+func (api *API) basicAuth(callUrl string, since *time.Time) (res *http.Response, err error) {
 	req, _ := http.NewRequest("GET", callUrl, nil)
 
 	req.SetBasicAuth(api.username, api.password)
+	if since != nil {
+		req.Header.Add("If-Modified-Since", since.Format(time.RFC1123))
+	}
 	res, err = api.client.Do(req)
 
 	if err != nil {
@@ -188,6 +228,26 @@ func NewRemoteFileGetter() DataGetter {
 		var response *http.Response
 
 		if response, err = api.execute(URL, false); err != nil {
+			return err
+		}
+
+		defer response.Body.Close()
+		bodybuffer := new(bytes.Buffer)
+
+		if _, err = bodybuffer.ReadFrom(response.Body); err != nil {
+			return err
+		}
+
+		err = xml.Unmarshal(bodybuffer.Bytes(), OUT)
+		return err
+	}
+}
+
+func NewRemoteFileGetterSince(since *time.Time) DataGetter {
+	return func(api *API, URL string, OUT interface{}) (err error) {
+		var response *http.Response
+
+		if response, err = api.executeSince(URL, false, since); err != nil {
 			return err
 		}
 
