@@ -538,7 +538,7 @@ type Property struct {
 	RentalFees          string                     `json:"rentalfees" xml:"rentalfees"`
 	LettingsFee         string                     `json:"lettingsfee" xml:"lettingsfee"`
 	RmQualifier         RMQualifier                `json:"rmQualifier" xml:"rm_qualifier"`
-	Available           *SanitizedDateUKDateFormat `json:"available" xml:"available"`
+	Available           *SanitizedDateUKDateFormat `json:"available" xml:"available" gorm:"type:Datetime"`
 	Uploaded            *SanitizedDateUKDateFormat `json:"uploaded" xml:"uploaded" gorm:"type:Datetime"`
 	Longitude           float32                    `json:"longitude" xml:"longitude"`
 	Latitude            float32                    `json:"latitude" xml:"latitude"`
