@@ -1,15 +1,15 @@
 package api
 
 import (
-	"time"
-	"strings"
-	"regexp"
-	"fmt"
-	"strconv"
-	"encoding/json"
 	"database/sql/driver"
-	"reflect"
+	"encoding/json"
 	"encoding/xml"
+	"fmt"
+	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
@@ -262,7 +262,7 @@ type RentalPeriod string
 type RMType SanitizedInt
 
 const (
-	RMTypeNotSpecified                   RMType = iota
+	RMTypeNotSpecified RMType = iota
 	RMTypeTerracedHouse
 	RMTypeEndOfTerraceHouse
 	RMTypeSemidetachedHouse
@@ -386,15 +386,15 @@ const (
 type RMTypeFurnished SanitizedInt
 
 const (
-	RMTypeFurnishedFurnished            RMTypeFurnished = iota
+	RMTypeFurnishedFurnished RMTypeFurnished = iota
 	RMTypeFurnishedPartFurnished
 	RMTypeFurnishedUnFurnished
 	RMTypeFurnishedNotSpecified
 	RMTypeFurnishedFurnishedUnFurnished
-	RMTypeFurnishedNotUsed              RMTypeFurnished = iota + 3
-	RMTypeFurnishedNotUsedII            RMTypeFurnished = iota + 6
-	RMTypeFurnishedNotUsedIII           RMTypeFurnished = iota + 16
-	RMTypeFurnishedNotUsedIIII          RMTypeFurnished = iota + 18
+	RMTypeFurnishedNotUsed     RMTypeFurnished = iota + 3
+	RMTypeFurnishedNotUsedII   RMTypeFurnished = iota + 6
+	RMTypeFurnishedNotUsedIII  RMTypeFurnished = iota + 16
+	RMTypeFurnishedNotUsedIIII RMTypeFurnished = iota + 18
 )
 
 type RMTypeLetType SanitizedInt
@@ -410,7 +410,7 @@ const (
 type RMQualifier SanitizedInt
 
 const (
-	RMQualifierDefault            RMQualifier = iota
+	RMQualifierDefault RMQualifier = iota
 	RMQualifierPriceOnApplication
 	RMQualifierGuidePrice
 	RMQualifierFixedPrice
@@ -423,14 +423,14 @@ const (
 	RMQualifierOffersOver
 	RMQualifierPartTimeBuyRent
 	RMQualifierSharedEquality
-	RMQualifierComingSoon         RMQualifier = iota + 3
+	RMQualifierComingSoon RMQualifier = iota + 3
 )
 
 type PropertyStatus SanitizedInt
 
 // Sale or let types
 const (
-	ForSaleOrToLet                            PropertyStatus = iota
+	ForSaleOrToLet PropertyStatus = iota
 	ForSaleOrToLetUnderOfferOrLet
 	ForSaleOrToLetSoldOrUnderOffer
 	ForSaleOrToLetSSTCOrReserved
@@ -448,7 +448,7 @@ const (
 
 //Let types
 const (
-	LetingsToLet      PropertyStatus = iota + 100
+	LetingsToLet PropertyStatus = iota + 100
 	LetingsLet
 	LetingsUnderOffer
 	LetingsReserved
@@ -457,12 +457,12 @@ const (
 
 // Hidden Properties
 const (
-	NotMarketed                      PropertyStatus = iota + 200
+	NotMarketed PropertyStatus = iota + 200
 	NotMarketedUnderOffer
 	NotMarketedSold
 	NotMarketedSoldSubjectToContract
-	NotMarketedLet                   PropertyStatus = iota + 200 + 10
-	NotMarketedII                    PropertyStatus = iota + 200 + 50
+	NotMarketedLet PropertyStatus = iota + 200 + 10
+	NotMarketedII  PropertyStatus = iota + 200 + 50
 )
 
 // Properties is a collection of the type Property
@@ -729,13 +729,13 @@ type EnvironmentalImpact struct {
 type ParagraphType SanitizedInt
 
 const (
-	StandardTextParagraph    ParagraphType = iota
+	StandardTextParagraph ParagraphType = iota
 	EnergyEfficiencyRatings
 	DisclaimerTextForDetails
 )
 
 type ParagraphFileIndex struct {
-	File uint `xml:"ref,attr"`
+	File  uint   `xml:"ref,attr"`
 	value string `json:"-"`
 }
 
@@ -767,13 +767,13 @@ func (pfi *ParagraphFileIndex) UnmarshalXML(d *xml.Decoder, start xml.StartEleme
 func (u *ParagraphFileIndex) Scan(value interface{}) error {
 	switch value.(type) {
 	case int:
-		u.File = value.(uint)
+		u.File = uint(value.(int))
 		return nil
 	case uint:
-		u.File = value.(uint)
+		u.File = uint(value.(uint))
 		return nil
 	case int64:
-		u.File = value.(uint)
+		u.File = uint(value.(int64))
 	default:
 		return fmt.Errorf("unexpected ParagraphFileIndex type: %s", reflect.TypeOf(value))
 	}
@@ -820,7 +820,7 @@ type Bullet struct {
 type FileURLType SanitizedInt
 
 const (
-	Image                        FileURLType = iota
+	Image FileURLType = iota
 	Map
 	FloorPlan
 	Vebra360Tour

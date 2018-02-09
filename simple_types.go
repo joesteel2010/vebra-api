@@ -1,13 +1,13 @@
 package api
 
 import (
-	"time"
-	"strings"
-	"fmt"
-	"strconv"
-	"encoding/xml"
 	"database/sql/driver"
 	"encoding/json"
+	"encoding/xml"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type SanitizedInt int
@@ -148,7 +148,8 @@ type SanitizedDateType struct {
 func (u *SanitizedDateType) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		u.Datetime = value.(*time.Time)
+		scannedTime := value.(time.Time)
+		u.Datetime = &scannedTime
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
@@ -194,7 +195,8 @@ func (sanitizedDateTimeType *SanitizedDateTimeType) MarshalJSON() ([]byte, error
 func (u *SanitizedDateTimeType) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		u.Datetime = value.(*time.Time)
+		scannedTime := value.(time.Time)
+		u.Datetime = &scannedTime
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
@@ -255,7 +257,9 @@ func (u *SanitizedDateUKDateFormat) UnmarshalXML(d *xml.Decoder, start xml.Start
 func (u *SanitizedDateUKDateFormat) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		*u.Datetime = value.(time.Time)
+		scannedTime := value.(time.Time)
+		u.Datetime = &scannedTime
+		return nil
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
@@ -353,7 +357,8 @@ func (u *SanitizedDateISODateTime) UnmarshalXML(d *xml.Decoder, start xml.StartE
 func (u *SanitizedDateISODateTime) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		u.Datetime = value.(*time.Time)
+		scannedTime := value.(time.Time)
+		u.Datetime = &scannedTime
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
