@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/base64"
 	"io/ioutil"
-	"log"
 	"os"
 )
 
