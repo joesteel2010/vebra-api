@@ -148,8 +148,11 @@ func (api *Api) doRequest(urlBuilder URLBuilder, out interface{}) (err error) {
 		requestor.doRequest()
 		requestor.saveTokenIfExists(api.tokenStorage)
 		requestor.handleErrors()
-		if requestor.response.StatusCode == http.StatusOK {
+		switch requestor.response.StatusCode {
+		case http.StatusOK:
 			return requestor.unmarshal(out)
+		case http.StatusNotModified:
+			return nil
 		}
 	}
 	api.StatusCode = requestor.response.StatusCode
