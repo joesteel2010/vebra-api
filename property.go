@@ -1,4 +1,4 @@
-package model
+package main
 
 import (
 	"time"
@@ -6,6 +6,10 @@ import (
 	"regexp"
 	"fmt"
 	"strconv"
+	"encoding/json"
+	"database/sql/driver"
+	"reflect"
+	"encoding/xml"
 )
 
 const (
@@ -20,6 +24,18 @@ const (
 
 type URLBuilder interface {
 	Build() string
+}
+
+type ChangedPropertyURLBuilder struct {
+	url string
+}
+
+func (builder *ChangedPropertyURLBuilder) SetURL(url string) {
+	builder.url = url
+}
+
+func (builder *ChangedPropertyURLBuilder) Build() string {
+	return builder.url
 }
 
 type vebraURLBuilder struct {
@@ -170,7 +186,7 @@ func (b *URLGetChangedPropertiesBuilder) Build() string {
 // BranchSummaries list of BranchSummary
 // Returned by the API call http://webservices.vebra.com/export/{datafeedid}/v10/branch List of branches for a Search Group.
 type BranchSummaries struct {
-	Branches []BranchSummary `xml:"branch"`
+	Branches []BranchSummary `json:"branch" xml:"branch"`
 }
 
 // BranchSummary Returned by the API call http://webservices.vebra.com/export/{datafeedid}/v10/branch List of branches for a Search Group.
@@ -180,16 +196,21 @@ type BranchSummaries struct {
 // BranchID: 	PSG Branch Identifier for this Firm.
 // Url:			REST Uri for the full branch details
 type BranchSummary struct {
-	Name     string `xml:"name"`
-	FirmID   int    `xml:"firmid"`
-	BranchID int    `xml:"branchid"`
-	Url      string `xml:"url"`
+	Name     string `json:"name" xml:"name"`
+	FirmID   int    `json:"firmid" xml:"firmid"`
+	BranchID int    `json:"branchid" xml:"branchid"`
+	Url      string `json:"url" xml:"url"`
 }
 
 // GetClientID returns the 4 digit client ID for the branch
 func (bs BranchSummary) GetClientID() (int, error) {
 	index := strings.LastIndex(bs.Url, "/")
 	return strconv.Atoi(bs.Url[(index + 1):])
+}
+
+func (bs BranchSummary) GetClientIDString() string {
+	index := strings.LastIndex(bs.Url, "/")
+	return bs.Url[(index + 1):]
 }
 
 // Branch Returned by the API call http://webservices.vebra.com/export/{datafeedid}/v10/branch/{clientid} Client address details.
@@ -206,32 +227,32 @@ func (bs BranchSummary) GetClientID() (int, error) {
 // Email:		Branch email
 // QueriedAt:	Branch street
 type Branch struct {
-	ClientID int    `xml:"clientid"`
-	FirmID   int    `xml:"FirmID"`
-	BranchID int    `xml:"BranchID"`
-	Name     string `xml:"name"`
-	URL      string `xml:"url"`
-	Street   string `xml:"street"`
-	Town     string `xml:"town"`
-	County   string `xml:"county"`
-	Postcode string `xml:"postcode"`
-	Phone    string `xml:"phone"`
-	Email    string `xml:"email"`
+	ClientID int    `json:"clientid" xml:"clientid"`
+	FirmID   int    `json:"firmID" xml:"FirmID"`
+	BranchID int    `json:"branchID" xml:"BranchID"`
+	Name     string `json:"name" xml:"name"`
+	URL      string `json:"url" xml:"url"`
+	Street   string `json:"street" xml:"street"`
+	Town     string `json:"town" xml:"town"`
+	County   string `json:"county" xml:"county"`
+	Postcode string `json:"postcode" xml:"postcode"`
+	Phone    string `json:"phone" xml:"phone"`
+	Email    string `json:"email" xml:"email"`
 }
 
 type PropertySummaries struct {
-	Properties []PropertySummary `xml:"property"`
+	Properties []PropertySummary `json:"property" xml:"property"`
 }
 
-// PropertySummary Returned by the API call http://webservices.vebra.com/export/{datafeedid}/v10/branch/{clientid}/property List of properties in a branch.
+// PropertySummary Returned by the API call http://webservices.vebra.com/export/{datafeedid}/v10/branch/{clientid}/property List of Properties in a branch.
 // Contains:
 // PropertyID: Unique identifier for this property.
-// LastChanged: Last changed Datetime for this property. ISO Date Time format - YYYY-MM-DDTHH:MI:SS
+// Updated: Last changed Datetime for this property. ISO Date Time format - YYYY-MM-DDTHH:MI:SS
 // Url: REST Uri for the full details of the this property.
 type PropertySummary struct {
-	PropertyID  uint   `xml:"prop_id" gorm:"primary_key" sql:"type:int"`
-	LastChanged string `xml:"lastchanged"`
-	Url         string `xml:"url"`
+	PropertyID  uint                      `json:"propId" xml:"prop_id" gorm:"primary_key" sql:"type:int"`
+	LastChanged *SanitizedDateISODateTime `json:"lastchanged" xml:"lastchanged"`
+	Url         string                    `json:"url" xml:"url"`
 }
 
 const RentalPeriodPattern string = "pw|PW|pcm|PCM|pq|pa"
@@ -446,7 +467,7 @@ const (
 
 // Properties is a collection of the type Property
 type Properties struct {
-	properties []Property `xml:"property"`
+	Properties []Property `json:"property" xml:"property"`
 }
 
 // Property is the main data type returned from the web service. It is the parent
@@ -464,7 +485,7 @@ type Properties struct {
 // RentalFees: This field is to comply with CAP legislation.
 // LettingsFee: This field is to comply with CAP legislation.
 // RmQualifier: RightMove qualifier. See rightmovetypes.xsd.
-// Available: Date the property is available in format “dd/mm/yyyy”. Used mainly for rental properties. If value held is NULL, is populated with 01/01/1900.
+// Available: Date the property is available in format “dd/mm/yyyy”. Used mainly for rental Properties. If value held is NULL, is populated with 01/01/1900.
 // Uploaded: Date the property was uploaded in format “dd/mm/yyyy”.
 // Longitude: The exact longitude of the property.
 // Latitude: The exact latitude of the property.
@@ -472,9 +493,9 @@ type Properties struct {
 // Northing: Northing (Cartesian coordinates)
 // StreetView: See StreetView
 // WebStatus: The status of the property. See propertyrelatedtypes.xsd.
-// CustomStatus: Relates to Commercial properties.
+// CustomStatus: Relates to Commercial Properties.
 // CommRent: Commercial rental amount. Listed rental price plus a qualifier which is configurable by the agent, e.g. per sq ft. Now DEPRECATED - please use price node.
-// Premium: Premium for property, if supplied. Relates to Commerical properties.
+// Premium: Premium for property, if supplied. Relates to Commerical Properties.
 // ServiceCharge: The service charge for the property, if supplied.
 // RateableValue: The rateable value for the property, if supplied.
 // Type: Apartment, House, (Not Specified) or the agent's own type. May not always contain data.
@@ -505,77 +526,82 @@ type Properties struct {
 // Bullets: See Bullet
 // Files: See File
 type Property struct {
-	ID                  uint                       `xml:"id,attr" gorm:"primary_key" sql:"type:int(10) unsigned`
-	System              string                     `xml:"system,attr"`
-	Firmid              string                     `xml:"firmid,attr"`
-	Branchid            int                        `xml:"branchid,attr"`
-	Database            int                        `xml:"database,attr"`
-	Featured            int                        `xml:"featured,attr"`
-	AgentReference      Reference                  `xml:"reference"`
-	Address             Address                    `xml:"address"`
-	Price               Price                      `xml:"price"`
-	RentalFees          string                     `xml:"rentalfees"`
-	LettingsFee         string                     `xml:"lettingsfee"`
-	RmQualifier         RMQualifier                `xml:"rm_qualifier"`
-	Available           *SanitizedDateUKDateFormat `xml:"available"`
-	Uploaded            *SanitizedDateUKDateFormat `xml:"uploaded" gorm:"type:Datetime"`
-	Longitude           float32                    `xml:"longitude"`
-	Latitude            float32                    `xml:"latitude"`
-	Easting             SanitizedInt               `xml:"easting"`
-	Northing            SanitizedInt               `xml:"northing"`
-	StreetView          StreetView                 `xml:"streetview"`
-	WebStatus           PropertyStatus             `xml:"web_status"`
-	CustomStatus        string                     `xml:"custom_status"`
-	CommRent            string                     `xml:"comm_rent"`
-	Premium             string                     `xml:"premium"`
-	ServiceCharge       string                     `xml:"service_charge"`
-	RateableValue       string                     `xml:"rateable_value"`
-	Type                string                     `xml:"type"`
-	Furnished           RMTypeFurnished            `xml:"furnished"`
-	RmType              RMType                     `xml:"rm_type"`
-	LetBond             SanitizedInt               `xml:"let_bond"`
-	RmLetTypeID         RMTypeLetType              `xml:"rm_let_type_id"`
-	Bedrooms            SanitizedInt               `xml:"bedrooms"`
-	Receptions          SanitizedInt               `xml:"receptions"`
-	Bathrooms           SanitizedInt               `xml:"bathrooms"`
-	UserField1          string                     `xml:"userfield1"`
-	UserField2          SanitizedInt               `xml:"userfield2"`
-	SoldDate            *SanitizedDateISODate      `xml:"solddate" gorm:"type:Datetime"`
-	LeaseEnd            *SanitizedDateISODate      `xml:"leaseend" gorm:"type:Datetime"`
-	Instructed          *SanitizedDateISODate      `xml:"instructed" gorm:"type:Datetime"`
-	SoldPrice           SanitizedInt               `xml:"soldprice"`
-	Garden              SanitizedBool              `xml:"garden"`
-	Parking             SanitizedBool              `xml:"parking"`
-	NewBuild            SanitizedBool              `xml:"newbuild"`
-	GroundRent          string                     `xml:"groundrent"`
-	Commission          string                     `xml:"commission"`
-	Area                []Area                     `xml:"area"`
-	LandArea            LandArea                   `xml:"landarea"`
-	Description         string                     `xml:"description" gorm:"type:varchar(2056)"`
-	EnergyEfficiency    EnergyEfficiency           `xml:"hip>energy_performance>energy_efficiency"`
-	EnvironmentalImpact EnvironmentalImpact        `xml:"hip>energy_performance>environmental_impact"`
-	Paragraphs          []Paragraph                `xml:"paragraphs>paragraph"`
-	Bullets             []Bullet                   `xml:"bullets>bullet"`
-	Files               []File                     `xml:"files>file"`
+	ID                  uint                       `json:"id" xml:"id,attr" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	System              string                     `json:"system" xml:"system,attr"`
+	Firmid              string                     `json:"firmid" xml:"firmid,attr"`
+	Branchid            int                        `json:"branchid" xml:"branchid,attr"`
+	Database            int                        `json:"database" xml:"database,attr"`
+	Featured            int                        `json:"featured" xml:"featured,attr"`
+	AgentReference      Reference                  `json:"reference" xml:"reference"`
+	Address             Address                    `json:"address" xml:"address"`
+	Price               Price                      `json:"price" xml:"price"`
+	RentalFees          string                     `json:"rentalfees" xml:"rentalfees"`
+	LettingsFee         string                     `json:"lettingsfee" xml:"lettingsfee"`
+	RmQualifier         RMQualifier                `json:"rmQualifier" xml:"rm_qualifier"`
+	Available           *SanitizedDateUKDateFormat `json:"available" xml:"available"`
+	Uploaded            *SanitizedDateUKDateFormat `json:"uploaded" xml:"uploaded" gorm:"type:Datetime"`
+	Longitude           float32                    `json:"longitude" xml:"longitude"`
+	Latitude            float32                    `json:"latitude" xml:"latitude"`
+	Easting             SanitizedInt               `json:"easting" xml:"easting"`
+	Northing            SanitizedInt               `json:"northing" xml:"northing"`
+	StreetView          StreetView                 `json:"streetview" xml:"streetview"`
+	WebStatus           PropertyStatus             `json:"webStatus" xml:"web_status"`
+	CustomStatus        string                     `json:"customStatus" xml:"custom_status"`
+	CommRent            string                     `json:"commRent" xml:"comm_rent"`
+	Premium             string                     `json:"premium" xml:"premium"`
+	ServiceCharge       string                     `json:"serviceCharge" xml:"service_charge"`
+	RateableValue       string                     `json:"rateableValue" xml:"rateable_value"`
+	Type                string                     `json:"type" xml:"type"`
+	Furnished           RMTypeFurnished            `json:"furnished" xml:"furnished"`
+	RmType              RMType                     `json:"rmType" xml:"rm_type"`
+	LetBond             SanitizedInt               `json:"letBond" xml:"let_bond"`
+	RmLetTypeID         RMTypeLetType              `json:"rmLetTypeId" xml:"rm_let_type_id"`
+	Bedrooms            SanitizedInt               `json:"bedrooms" xml:"bedrooms"`
+	Receptions          SanitizedInt               `json:"receptions" xml:"receptions"`
+	Bathrooms           SanitizedInt               `json:"bathrooms" xml:"bathrooms"`
+	UserField1          string                     `json:"userfield1" xml:"userfield1"`
+	UserField2          SanitizedInt               `json:"userfield2" xml:"userfield2"`
+	SoldDate            *SanitizedDateISODate      `json:"solddate" xml:"solddate" gorm:"type:Datetime"`
+	LeaseEnd            *SanitizedDateISODate      `json:"leaseend" xml:"leaseend" gorm:"type:Datetime"`
+	Instructed          *SanitizedDateISODate      `json:"instructed" xml:"instructed" gorm:"type:Datetime"`
+	SoldPrice           SanitizedInt               `json:"soldprice" xml:"soldprice"`
+	Garden              SanitizedBool              `json:"garden" xml:"garden"`
+	Parking             SanitizedBool              `json:"parking" xml:"parking"`
+	NewBuild            SanitizedBool              `json:"newbuild" xml:"newbuild"`
+	GroundRent          string                     `json:"groundrent" xml:"groundrent"`
+	Commission          string                     `json:"commission" xml:"commission"`
+	Area                []Area                     `json:"area" xml:"area"`
+	LandArea            LandArea                   `json:"landarea" xml:"landarea"`
+	Description         string                     `json:"description" xml:"description" gorm:"type:varchar(2056)"`
+	EnergyEfficiency    EnergyEfficiency           `json:"energyEfficiency" xml:"hip>energy_performance>energy_efficiency"`
+	EnvironmentalImpact EnvironmentalImpact        `json:"environmentalImpact" xml:"hip>energy_performance>environmental_impact"`
+	Paragraphs          []Paragraph                `json:"paragraphs" xml:"paragraphs>paragraph"`
+	Bullets             []Bullet                   `json:"bullets" xml:"bullets>bullet"`
+	Files               []File                     `json:"files" xml:"files>file"`
 }
 
+const (
+	Updated = "updated"
+	Deleted = "deleted"
+)
+
 type ChangedPropertySummaries struct {
-	PropertySummaries []ChangedPropertySummary `xml:"property"`
+	PropertySummaries []ChangedPropertySummary `json:"property" xml:"property"`
 }
 
 // ChangedPropertySummary
 // Returned by the API call
 // http://webservices.vebra.com/export/{datafeedid}/v10/property/{yyyy}/{MM}/{dd}/{HH}/{mm}/{ss}
-// List of properties updated in a search group.
+// List of Properties updated in a search group.
 // Contains:
 // PropertyID: Unique identifier for this property
-// LastChanged: Last changed Datetime for this property. ISO Date Time format - YYYY-MM-DDTHH:MI:SS
+// Updated: Last changed Datetime for this property. ISO Date Time format - YYYY-MM-DDTHH:MI:SS
 // LastAction Action field to indicate whether this property was updated or deleted. Possible values: ["updated", "deleted"]
 type ChangedPropertySummary struct {
-	PropertyID  uint   `xml:"propid"`
-	LastChanged string `xml:"lastchanged"`
-	Url         string `xml:"url"`
-	LastAction  string `xml:"action"`
+	PropertyID  uint                      `xml:"propid" json:"-"`
+	LastChanged *SanitizedDateISODateTime `json:"lastchanged" xml:"lastchanged"`
+	Url         string                    `json:"url" xml:"url"`
+	LastAction  string                    `json:"action" xml:"action"`
 }
 
 func (cps *ChangedPropertySummary) SetLastAction(lastAction string) {
@@ -588,7 +614,7 @@ func (cps *ChangedPropertySummary) GetLastAction() string {
 
 // GetClientID returns the 4 digit client ID for the branch
 func (cps *ChangedPropertySummary) GetClientID() (int, error) {
-	re := regexp.MustCompile(`branch\/(\d+)/`)
+	re := regexp.MustCompile(`branch/(\d+)/`)
 	matches := re.FindStringSubmatch(cps.Url)
 
 	if matches == nil || len(matches) < 2 {
@@ -601,9 +627,9 @@ func (cps *ChangedPropertySummary) GetClientID() (int, error) {
 // Reference This is the agents reference and can be displayed on an agent's search.
 // Rightmove use this as part of property reference.
 type Reference struct {
-	PropertyID uint `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	Agents     int  `xml:"agents"`
-	Software   int  `xml:"software"`
+	PropertyID uint `gorm:"primary_key" sql:"type:int(10) unsigned" json:"-"`
+	Agents     int  `json:"agents" xml:"agents"`
+	Software   int  `json:"software" xml:"software"`
 }
 
 // Address represents the property address
@@ -619,15 +645,15 @@ type Reference struct {
 // Display: The address to display on the website. If this is not supplied we will display street, town, county
 //			from the address above.
 type Address struct {
-	PropertyID     uint   `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	Name           string `xml:"name"`
-	Street         string `xml:"street"`
-	Locality       string `xml:"locality"`
-	Town           string `xml:"town"`
-	County         string `xml:"county"`
-	Postcode       string `xml:"postcode"`
-	CustomLocation string `xml:"custom_locatiom"`
-	Display        string `xml:"display"`
+	PropertyID     uint   `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	Name           string `json:"name" xml:"name"`
+	Street         string `json:"street" xml:"street"`
+	Locality       string `json:"locality" xml:"locality"`
+	Town           string `json:"town" xml:"town"`
+	County         string `json:"county" xml:"county"`
+	Postcode       string `json:"postcode" xml:"postcode"`
+	CustomLocation string `json:"customLocatiom" xml:"custom_locatiom"`
+	Display        string `json:"display" xml:"display"`
 }
 
 // Price represents the price of the property
@@ -639,12 +665,12 @@ type Address struct {
 // 		 Possible values are: pw|PW|pcm|PCM|pq|pa (Is this a per week(pw), per month(pcm), per quarter (pq) or per annum (pa) rental)
 // Value: Property value (in given unit of currency)
 type Price struct {
-	PropertyID uint         `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	Qualifier  string       `xml:"qualifier,attr"`
-	Currency   string       `xml:"currency,attr"`
-	Display    string       `xml:"display,attr"`
-	Rent       string       `xml:"rent,attr"`
-	Value      SanitizedInt `xml:",chardata"`
+	PropertyID uint         `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	Qualifier  string       `json:"qualifier" xml:"qualifier,attr"`
+	Currency   string       `json:"currency" xml:"currency,attr"`
+	Display    string       `json:"display" xml:"display,attr"`
+	Rent       string       `json:"rent" xml:"rent,attr"`
+	Value      SanitizedInt `json:"value" xml:",chardata"`
 }
 
 // StreetView describes the longitude, latitude, yaw, pitch and zoom for the property using Google StreetView.
@@ -655,43 +681,43 @@ type Price struct {
 // PovHeading: The heading for the google StreetView camera
 // PovZoom: The zoom level for the google StreetView camera
 type StreetView struct {
-	PropertyID   uint `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	PovLatitude  float32
-	PovLongitude float32
-	PovPitch     float32
-	PovHeading   float32
-	PovZoom      int
+	PropertyID   uint    `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	PovLatitude  float32 `json:"povLatitude"`
+	PovLongitude float32 `json:"povLongitude"`
+	PovPitch     float32 `json:"povPitch"`
+	PovHeading   float32 `json:"povHeading"`
+	PovZoom      int     `json:"povZoom"`
 }
 
 // Area The minimum / maximum internal area for the property, if supplied.
-// May be in Imperial, Metric or both. Used for Commercial properties.
+// May be in Imperial, Metric or both. Used for Commercial Properties.
 // Contains:
 // Unit: "sqft", "sqm", "acre", "hectare"
 // Min:
 // Max:
 type Area struct {
-	PropertyID uint    `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	Unit       string  `xml:"unit,attr"`
-	Min        float64 `xml:"min"`
-	Max        float64 `xml:"max"`
+	PropertyID uint    `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	Unit       string  `json:"unit" xml:"unit,attr"`
+	Min        float64 `json:"min" xml:"min"`
+	Max        float64 `json:"max" xml:"max"`
 }
 
 // LandArea The land / external area for the property, if supplied.
-// May be in Imperial, Metric. Used for Commercial properties.
+// May be in Imperial, Metric. Used for Commercial Properties.
 // Contains:
 // Unit: "sqft", "sqm", "acre", "hectare"
 // Min:
 // Max:
 type LandArea struct {
-	Area `xml:"landarea"`
+	Area `json:"-" xml:"landarea"`
 }
 
 // EnergyEfficiency The Environmental Impact value for the property.
 // Values are 1-100. Includes Current and Potential values.
 type EnergyEfficiency struct {
-	PropertyID uint         `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	Current    SanitizedInt `xml:"current"`
-	Potential  SanitizedInt `xml:"potential"`
+	PropertyID uint         `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	Current    SanitizedInt `json:"current" xml:"current"`
+	Potential  SanitizedInt `json:"potential" xml:"potential"`
 }
 
 // EnvironmentalImpact The Environmental Impact	value for the property.
@@ -708,6 +734,59 @@ const (
 	DisclaimerTextForDetails
 )
 
+type ParagraphFileIndex struct {
+	File uint `xml:"ref,attr"`
+	value string `json:"-"`
+}
+
+func (pfi *ParagraphFileIndex) MarshalJSON() ([]byte, error) {
+	if pfi.value == "" {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(pfi.File)
+}
+
+func (pfi *ParagraphFileIndex) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		if attr.Name.Local != "ref" {
+			continue
+		}
+		if attr.Value == "" {
+			return nil
+		}
+		pfi.value = attr.Value
+		var index int
+		if index, err = strconv.Atoi(attr.Value); err != nil {
+			return err
+		}
+		pfi.File = uint(index)
+	}
+	return d.Skip()
+}
+
+func (u *ParagraphFileIndex) Scan(value interface{}) error {
+	switch value.(type) {
+	case int:
+		u.File = value.(uint)
+		return nil
+	case uint:
+		u.File = value.(uint)
+		return nil
+	case int64:
+		u.File = value.(uint)
+	default:
+		return fmt.Errorf("unexpected ParagraphFileIndex type: %s", reflect.TypeOf(value))
+	}
+	return nil
+}
+
+func (u *ParagraphFileIndex) Value() (driver.Value, error) {
+	if u.value == "" {
+		return nil, nil
+	}
+	return int64(u.File), nil
+}
+
 // Paragraph contains detailed property information
 // Contains:
 // Name: The heading for the paragraph, for example, room name, e.g. Lounge, Kitchen etc
@@ -717,15 +796,15 @@ const (
 // Imperial: The dimensions of the room (if supplied).
 // Mixed: The dimensions of the room (if supplied).
 type Paragraph struct {
-	PropertyID  uint          `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	ParagraphID int           `xml:"id,attr" gorm:"primary_key" sql:"type:int"`
-	Type        ParagraphType `xml:"type,attr" json:"Type"`
-	Name        string        `xml:"name"`
-	File        string        `xml:"file"`
-	Metric      string        `xml:"dimensions>metric"`
-	Imperial    string        `xml:"dimensions>imperial"`
-	Mixed       string        `xml:"dimensions>mixed"`
-	Text        string        `xml:"text" sql:"type:text"`
+	PropertyID  uint                `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	ParagraphID int                 `json:"id" xml:"id,attr" gorm:"primary_key" sql:"type:int"`
+	Type        ParagraphType       `json:"type" xml:"type,attr" json:"Type"`
+	Name        string              `json:"name" xml:"name"`
+	File        *ParagraphFileIndex `json:"file" xml:"file"`
+	Metric      string              `json:"metric" xml:"dimensions>metric"`
+	Imperial    string              `json:"imperial" xml:"dimensions>imperial"`
+	Mixed       string              `json:"mixed" xml:"dimensions>mixed"`
+	Text        string              `json:"text" xml:"text" sql:"type:text"`
 }
 
 // Bullet Bullet points, if supplied.
@@ -733,9 +812,9 @@ type Paragraph struct {
 // PropertyID: ID of the parent property
 // BulletID: ID of the Bullet
 type Bullet struct {
-	PropertyID uint         `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	BulletID   SanitizedInt `xml:"id,attr" json:"ID" gorm:"primary_key" sql:"type:int"`
-	Value      string       `xml:",chardata"`
+	PropertyID uint         `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	BulletID   SanitizedInt `json:"id" xml:"id,attr" json:"ID" gorm:"primary_key" sql:"type:int"`
+	Value      string       `json:"value" xml:",chardata"`
 }
 
 type FileURLType SanitizedInt
@@ -764,23 +843,23 @@ const (
 // FileID: ID of the file
 // PropertyID: ID of the parent property
 type File struct {
-	PropertyID uint                      `gorm:"primary_key" sql:"type:int(10) unsigned"`
-	FileID     SanitizedInt              `xml:"id,attr" json:"ID" gorm:"primary_key" sql:"type:int"`
-	Type       FileURLType               `xml:"type,attr"`
-	Name       string                    `xml:"name"`
-	Url        string                    `xml:"url"`
-	Updated    *SanitizedDateISODateTime `xml:"updated" sql:"type:Datetime"`
+	PropertyID uint                      `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	FileID     SanitizedInt              `json:"id" xml:"id,attr" gorm:"primary_key" sql:"type:int"`
+	Type       FileURLType               `json:"type" xml:"type,attr"`
+	Name       string                    `json:"name" xml:"name"`
+	Url        string                    `json:"url" xml:"url"`
+	Updated    *SanitizedDateISODateTime `json:"updated" xml:"updated" sql:"type:Datetime"`
 }
 
 type ChangedFilesSummaries struct {
-	Files []ChangedFileSummary `xml:"file"`
+	Files []ChangedFileSummary `json:"file" xml:"file"`
 }
 
 type ChangedFileSummary struct {
-	FileID      int    `xml:"file_id"`
-	FilePropId  int    `xml:"file_propid"`
-	LastChanged string `xml:"updated"`
-	IsDeleted   bool   `xml:"deleted"`
-	Url         string `xml:"url"`
-	PropUrl     string `xml:"prop_url"`
+	FileID     int    `json:"-" xml:"file_id"`
+	FilePropId int    `json:"filePropId" xml:"file_propid"`
+	Updated    string `json:"updated" xml:"updated"`
+	Deleted    bool   `json:"deleted" xml:"deleted"`
+	Url        string `json:"url" xml:"url"`
+	PropUrl    string `json:"propUrl" xml:"prop_url"`
 }

@@ -1,4 +1,4 @@
-package model
+package main
 
 import (
 	"time"
@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"encoding/xml"
 	"database/sql/driver"
+	"encoding/json"
 )
 
 type SanitizedInt int
@@ -139,7 +140,7 @@ type SanitizedDate interface {
 }
 
 type SanitizedDateType struct {
-	Datetime time.Time
+	Datetime *time.Time
 	DbLayout string "02/01/2006"
 	Layout   string "2006-01-02 15:04:05"
 }
@@ -147,7 +148,7 @@ type SanitizedDateType struct {
 func (u *SanitizedDateType) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		u.Datetime = value.(time.Time)
+		u.Datetime = value.(*time.Time)
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
@@ -156,7 +157,7 @@ func (u *SanitizedDateType) Scan(value interface{}) error {
 		if err != nil {
 			fmt.Errorf("Error scanning SanitizedDateTimeType: %s", err)
 		}
-		u.Datetime = t
+		u.Datetime = &t
 		return nil
 	default:
 		fmt.Errorf("Error: cant handle type %T in SanitizedDateTimeType.Scan", value)
@@ -174,18 +175,26 @@ func (u *SanitizedDateType) Value() (driver.Value, error) {
 	return u.Datetime, nil
 }
 
-func (u *SanitizedDateType) TimeValue() time.Time { return u.Datetime }
+func (sanitizedDateType *SanitizedDateType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(sanitizedDateType.Datetime)
+}
+
+func (u *SanitizedDateType) TimeValue() time.Time { return *u.Datetime }
 
 type SanitizedDateTimeType struct {
-	Datetime time.Time
+	Datetime *time.Time
 	DbLayout string "02/01/2006"
 	Layout   string "2006-01-02 15:04:05"
+}
+
+func (sanitizedDateTimeType *SanitizedDateTimeType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(sanitizedDateTimeType.Datetime)
 }
 
 func (u *SanitizedDateTimeType) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		u.Datetime = value.(time.Time)
+		u.Datetime = value.(*time.Time)
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
@@ -194,7 +203,7 @@ func (u *SanitizedDateTimeType) Scan(value interface{}) error {
 		if err != nil {
 			fmt.Errorf("Error scanning SanitizedDateTimeType: %s", err)
 		}
-		u.Datetime = t
+		*u.Datetime = t
 		return nil
 	default:
 		fmt.Errorf("Error: cant handle type %T in SanitizedDateTimeType.Scan", value)
@@ -212,10 +221,14 @@ func (u *SanitizedDateTimeType) Value() (driver.Value, error) {
 	return u.Datetime, nil
 }
 
-func (u *SanitizedDateTimeType) TimeValue() time.Time { return u.Datetime }
+func (u *SanitizedDateTimeType) TimeValue() time.Time { return *u.Datetime }
 
 type SanitizedDateUKDateFormat struct {
 	SanitizedDateTimeType
+}
+
+func (sanitizedDateUKDateFormat *SanitizedDateUKDateFormat) MarshalJSON() ([]byte, error) {
+	return json.Marshal(sanitizedDateUKDateFormat.Datetime)
 }
 
 func (u *SanitizedDateUKDateFormat) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
@@ -224,23 +237,25 @@ func (u *SanitizedDateUKDateFormat) UnmarshalXML(d *xml.Decoder, start xml.Start
 	d.DecodeElement(&value, &start)
 
 	if value == "" {
-		u.Datetime = time.Now()
 		return nil
 	}
 
 	if tmpTime, err = time.Parse(UKDateFormat, value); err == nil {
-		u.Datetime = tmpTime
+		if tmpTime.Before(MySQLNullDate) {
+			return nil
+		}
+		u.Datetime = &tmpTime
 		return nil
 	}
 
-	u.Datetime = time.Now()
+	*u.Datetime = time.Now()
 	return nil
 }
 
 func (u *SanitizedDateUKDateFormat) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		u.Datetime = value.(time.Time)
+		*u.Datetime = value.(time.Time)
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
@@ -249,7 +264,7 @@ func (u *SanitizedDateUKDateFormat) Scan(value interface{}) error {
 		if err != nil {
 			fmt.Errorf("Error scanning SanitizedDateTimeType: %s", err)
 		}
-		u.Datetime = t
+		*u.Datetime = t
 		return nil
 	default:
 		fmt.Errorf("Error: cant handle type %T in SanitizedDateTimeType.Scan", value)
@@ -267,10 +282,14 @@ func (u *SanitizedDateUKDateFormat) Value() (driver.Value, error) {
 	return u.Datetime, nil
 }
 
-func (u *SanitizedDateUKDateFormat) TimeValue() time.Time { return u.Datetime }
+func (u *SanitizedDateUKDateFormat) TimeValue() time.Time { return *u.Datetime }
 
 type SanitizedDateISODate struct {
 	SanitizedDateType
+}
+
+func (sanitizedDateISODate *SanitizedDateISODate) MarshalJSON() ([]byte, error) {
+	return json.Marshal(sanitizedDateISODate.Datetime)
 }
 
 func (u *SanitizedDateISODate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
@@ -279,16 +298,18 @@ func (u *SanitizedDateISODate) UnmarshalXML(d *xml.Decoder, start xml.StartEleme
 	d.DecodeElement(&value, &start)
 
 	if value == "" {
-		u.Datetime = time.Now()
 		return nil
 	}
 
 	if tmpTime, err = time.Parse(ISODate, value); err == nil {
-		u.Datetime = tmpTime
+		if tmpTime.Before(MySQLNullDate) {
+			return nil
+		}
+		u.Datetime = &tmpTime
 		return nil
 	}
 
-	u.Datetime = time.Now()
+	*u.Datetime = time.Now()
 	return nil
 }
 
@@ -306,29 +327,33 @@ type SanitizedDateISODateTime struct {
 	SanitizedDateTimeType
 }
 
+func (sanitizedDateISODateTime *SanitizedDateISODateTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(sanitizedDateISODateTime.Datetime)
+}
+
 func (u *SanitizedDateISODateTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	var value string
 	var tmpTime time.Time
 	d.DecodeElement(&value, &start)
 
 	if value == "" {
-		u.Datetime = time.Now()
 		return nil
 	}
 
 	if tmpTime, err = time.Parse(ISODateTime, value); err == nil {
-		u.Datetime = tmpTime
+		if tmpTime.Before(MySQLNullDate) {
+			return nil
+		}
+		u.Datetime = &tmpTime
 		return nil
 	}
-
-	u.Datetime = time.Now()
 	return nil
 }
 
 func (u *SanitizedDateISODateTime) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		u.Datetime = value.(time.Time)
+		u.Datetime = value.(*time.Time)
 		return nil
 	case []uint8:
 		str := string(value.([]uint8))
@@ -337,7 +362,7 @@ func (u *SanitizedDateISODateTime) Scan(value interface{}) error {
 		if err != nil {
 			fmt.Errorf("Error scanning SanitizedDateTimeType: %s", err)
 		}
-		u.Datetime = t
+		*u.Datetime = t
 		return nil
 	default:
 		fmt.Errorf("Error: cant handle type %T in SanitizedDateTimeType.Scan", value)
@@ -355,4 +380,4 @@ func (u *SanitizedDateISODateTime) Value() (driver.Value, error) {
 	return u.Datetime, nil
 }
 
-func (u *SanitizedDateISODateTime) TimeValue() time.Time { return u.Datetime }
+func (u *SanitizedDateISODateTime) TimeValue() time.Time { return *u.Datetime }

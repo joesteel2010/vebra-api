@@ -1,17 +1,17 @@
 // + build unit
 
-package model
+package main
 
 import (
 	"testing"
 	"time"
 	"fmt"
-	"os"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"io/ioutil"
 	"encoding/xml"
 	"log"
+	"github.com/jinzhu/gorm"
+	"os"
 )
 
 func TestURLGetBranchesBuilder(t *testing.T) {
@@ -86,8 +86,29 @@ func TestURLGetChangedProperties(t *testing.T) {
 	}
 }
 
-// Integration tests START
-func getDBConnectionHelper(t *testing.T) *gorm.DB {
+func ReadPropertiesHelper(t *testing.T) []Property {
+	files, err := ioutil.ReadDir("test_assets/api/branch/3741/property/")
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	properties := make([]Property, len(files))
+	for _, file := range (files) {
+		file.Name()
+		file, err := ioutil.ReadFile("test_assets/api/branch/3741/property/" + file.Name())
+		if err != nil {
+			t.Fatalf("Error opening file: %s", err.Error())
+		}
+		prop := &Property{}
+		if err := xml.Unmarshal(file, prop); err != nil {
+			t.Fatalf("Error unmarshaling file: %s", err.Error())
+		}
+		properties = append(properties, *prop)
+	}
+	return properties
+}
+
+func getDBConnectionHelper() *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		os.Getenv("DB_USERNAME"),
 		os.Getenv("DB_PASSWORD"),
@@ -96,7 +117,7 @@ func getDBConnectionHelper(t *testing.T) *gorm.DB {
 		os.Getenv("DB_NAME"),
 	)
 
-	t.Logf("Connecting to [%s]", dsn)
+	log.Printf("Connecting to [%s]", dsn)
 
 	db, err := gorm.Open("mysql", dsn)
 	db = db.Debug()
@@ -152,28 +173,6 @@ func CreateTables(db *gorm.DB) error {
 		return err
 	}
 	return nil
-}
-
-func ReadPropertiesHelper(t *testing.T) []Property {
-	files, err := ioutil.ReadDir("../test_assets/api/branch/3741/property/")
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	properties := make([]Property, len(files))
-	for _, file := range (files) {
-		file.Name()
-		file, err := ioutil.ReadFile("../test_assets/api/branch/3741/property/" + file.Name())
-		if err != nil {
-			t.Fatalf("Error opening file: %s", err.Error())
-		}
-		prop := &Property{}
-		if err := xml.Unmarshal(file, prop); err != nil {
-			t.Fatalf("Error unmarshaling file: %s", err.Error())
-		}
-		properties = append(properties, *prop)
-	}
-	return properties
 }
 
 func TestSavePropertyIntegration(t *testing.T) {

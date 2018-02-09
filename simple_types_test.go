@@ -1,4 +1,4 @@
-package model
+package main
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func PropertyReaderHelper(t *testing.T) *Property {
-	file, err := ioutil.ReadFile("../test_assets/api/branch/3741/property/26858499.xml")
+	file, err := ioutil.ReadFile("test_assets/api/branch/3741/property/26858499.xml")
 	if err != nil {
 		t.Fatalf("Error opening file: %s", err.Error())
 	}
