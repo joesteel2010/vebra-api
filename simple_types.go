@@ -166,13 +166,13 @@ func (u *SanitizedDateType) Scan(value interface{}) error {
 }
 
 func (u *SanitizedDateType) Value() (driver.Value, error) {
-	if u == nil {
+	if u == nil || u.Datetime == nil {
 		return nil, nil
 	}
 	if u.Datetime.Before(MySQLNullDate) {
 		return nil, nil
 	}
-	return u.Datetime, nil
+	return *u.Datetime, nil
 }
 
 func (sanitizedDateType *SanitizedDateType) MarshalJSON() ([]byte, error) {
@@ -212,13 +212,13 @@ func (u *SanitizedDateTimeType) Scan(value interface{}) error {
 }
 
 func (u *SanitizedDateTimeType) Value() (driver.Value, error) {
-	if u == nil {
+	if u == nil || u.Datetime == nil {
 		return nil, nil
 	}
 	if u.Datetime.Before(MySQLNullDate) {
 		return nil, nil
 	}
-	return u.Datetime, nil
+	return *u.Datetime, nil
 }
 
 func (u *SanitizedDateTimeType) TimeValue() time.Time { return *u.Datetime }
@@ -273,13 +273,13 @@ func (u *SanitizedDateUKDateFormat) Scan(value interface{}) error {
 }
 
 func (u *SanitizedDateUKDateFormat) Value() (driver.Value, error) {
-	if u == nil {
+	if u == nil || u.Datetime == nil {
 		return nil, nil
 	}
 	if u.Datetime.Before(MySQLNullDate) {
 		return nil, nil
 	}
-	return u.Datetime, nil
+	return *u.Datetime, nil
 }
 
 func (u *SanitizedDateUKDateFormat) TimeValue() time.Time { return *u.Datetime }
@@ -314,13 +314,13 @@ func (u *SanitizedDateISODate) UnmarshalXML(d *xml.Decoder, start xml.StartEleme
 }
 
 func (u *SanitizedDateISODate) Value() (driver.Value, error) {
-	if u == nil {
+	if u == nil || u.Datetime == nil {
 		return nil, nil
 	}
 	if u.Datetime.Before(MySQLNullDate) {
 		return nil, nil
 	}
-	return u.Datetime, nil
+	return *u.Datetime, nil
 }
 
 type SanitizedDateISODateTime struct {
@@ -371,13 +371,13 @@ func (u *SanitizedDateISODateTime) Scan(value interface{}) error {
 }
 
 func (u *SanitizedDateISODateTime) Value() (driver.Value, error) {
-	if u == nil {
+	if u == nil || u.Datetime == nil {
 		return nil, nil
 	}
 	if u.Datetime.Before(MySQLNullDate) {
 		return nil, nil
 	}
-	return u.Datetime, nil
+	return *u.Datetime, nil
 }
 
 func (u *SanitizedDateISODateTime) TimeValue() time.Time { return *u.Datetime }

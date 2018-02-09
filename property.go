@@ -538,8 +538,8 @@ type Property struct {
 	RentalFees          string                     `json:"rentalfees" xml:"rentalfees"`
 	LettingsFee         string                     `json:"lettingsfee" xml:"lettingsfee"`
 	RmQualifier         RMQualifier                `json:"rmQualifier" xml:"rm_qualifier"`
-	Available           *SanitizedDateUKDateFormat `json:"available" xml:"available" gorm:"type:Datetime"`
-	Uploaded            *SanitizedDateUKDateFormat `json:"uploaded" xml:"uploaded" gorm:"type:Datetime"`
+	Available           *SanitizedDateUKDateFormat `json:"available" xml:"available" gorm:"type:Date"`
+	Uploaded            *SanitizedDateUKDateFormat `json:"uploaded" xml:"uploaded" gorm:"type:Date"`
 	Longitude           float32                    `json:"longitude" xml:"longitude"`
 	Latitude            float32                    `json:"latitude" xml:"latitude"`
 	Easting             SanitizedInt               `json:"easting" xml:"easting"`
@@ -561,9 +561,9 @@ type Property struct {
 	Bathrooms           SanitizedInt               `json:"bathrooms" xml:"bathrooms"`
 	UserField1          string                     `json:"userfield1" xml:"userfield1"`
 	UserField2          SanitizedInt               `json:"userfield2" xml:"userfield2"`
-	SoldDate            *SanitizedDateISODate      `json:"solddate" xml:"solddate" gorm:"type:Datetime"`
-	LeaseEnd            *SanitizedDateISODate      `json:"leaseend" xml:"leaseend" gorm:"type:Datetime"`
-	Instructed          *SanitizedDateISODate      `json:"instructed" xml:"instructed" gorm:"type:Datetime"`
+	SoldDate            *SanitizedDateISODate      `json:"solddate" xml:"solddate" gorm:"type:Date"`
+	LeaseEnd            *SanitizedDateISODate      `json:"leaseend" xml:"leaseend" gorm:"type:Date"`
+	Instructed          *SanitizedDateISODate      `json:"instructed" xml:"instructed" gorm:"type:Date"`
 	SoldPrice           SanitizedInt               `json:"soldprice" xml:"soldprice"`
 	Garden              SanitizedBool              `json:"garden" xml:"garden"`
 	Parking             SanitizedBool              `json:"parking" xml:"parking"`
