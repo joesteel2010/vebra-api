@@ -105,3 +105,14 @@ func TestUnmarshalXMLRMWebStatus(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestUnmarshalXMLSanitizedBoolean(t *testing.T) {
+	prop := PropertyReaderHelper(t)
+	expected := "21/03/2017"
+	actual   := prop.Uploaded.TimeValue().Format("02/01/2006")
+
+	if actual != expected {
+		t.Errorf("Parsed date %s does not match the expected date %s", actual, expected)
+		t.Fail()
+	}
+}
