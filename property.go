@@ -781,7 +781,8 @@ func (u *ParagraphFileIndex) Scan(value interface{}) error {
 }
 
 func (u *ParagraphFileIndex) Value() (driver.Value, error) {
-	if u.value == "" {
+
+	if u == nil || u.value == "" {
 		return nil, nil
 	}
 	return int64(u.File), nil
