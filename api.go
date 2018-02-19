@@ -13,13 +13,13 @@ import (
 const (
 	HeaderAuthorizationKey      = "Authorization"
 	HeaderIfModifiedSinceKey    = "If-Modified-Since"
-	HeaderTokenKey              = "Token"
+	HeaderTokenKey              = "NewToken"
 	HeaderTokenAuthFormatString = "Basic %s"
 )
 
 type TokenStorage interface {
-	Save(token token) error
-	Load() (*token, error)
+	Save(token Token) error
+	Load() (*Token, error)
 }
 
 type Api struct {
@@ -188,34 +188,38 @@ type credentials struct {
 	password string
 }
 
-type token struct {
+type Token struct {
 	tokenString string
 	isEmpty     bool
 	isValid     bool
 	timeSet     time.Time
 }
 
-func Token(tokenString string) *token {
-	token := new(token)
+func NewToken(tokenString string) *Token {
+	token := new(Token)
 	token.tokenString = tokenString
 	token.isValid = true
 	token.timeSet = time.Now()
 	return token
 }
 
-func (token *token) IsValid() bool {
+func (token *Token) IsValid() bool {
 	return token.isValid
 }
 
-func (token *token) Invalidate() {
+func (token *Token) Invalidate() {
 	token.isValid = false
 	token.tokenString = ""
+}
+
+func (token *Token) GetToken() string {
+	return token.tokenString
 }
 
 type requestor struct {
 	dataFeedID  string
 	credentials *credentials
-	token       *token
+	token       *Token
 	urlBuilder  URLBuilder
 	header      http.Header
 	since       *time.Time
@@ -230,7 +234,7 @@ func buildRequestor(dataFeedId string, credentials *credentials) (*requestor) {
 	return &requestor{
 		dataFeedID:  dataFeedId,
 		credentials: credentials,
-		token:       &token{},
+		token:       &Token{},
 		urlBuilder:  nil,
 		header:      http.Header{},
 	}
@@ -245,7 +249,7 @@ func (requestor *requestor) doRequest() {
 
 func (requestor *requestor) saveTokenIfExists(tokenStorage TokenStorage) {
 	if token := requestor.response.Header.Get(HeaderTokenKey); token != "" {
-		requestor.token = Token(token)
+		requestor.token = NewToken(token)
 		if tokenStorage != nil {
 			tokenStorage.Save(*requestor.token)
 		}
