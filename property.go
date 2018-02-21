@@ -262,7 +262,7 @@ type RentalPeriod string
 type RMType SanitizedInt
 
 const (
-	RMTypeNotSpecified RMType = iota
+	RMTypeNotSpecified                   RMType = iota
 	RMTypeTerracedHouse
 	RMTypeEndOfTerraceHouse
 	RMTypeSemidetachedHouse
@@ -386,15 +386,15 @@ const (
 type RMTypeFurnished SanitizedInt
 
 const (
-	RMTypeFurnishedFurnished RMTypeFurnished = iota
+	RMTypeFurnishedFurnished            RMTypeFurnished = iota
 	RMTypeFurnishedPartFurnished
 	RMTypeFurnishedUnFurnished
 	RMTypeFurnishedNotSpecified
 	RMTypeFurnishedFurnishedUnFurnished
-	RMTypeFurnishedNotUsed     RMTypeFurnished = iota + 3
-	RMTypeFurnishedNotUsedII   RMTypeFurnished = iota + 6
-	RMTypeFurnishedNotUsedIII  RMTypeFurnished = iota + 16
-	RMTypeFurnishedNotUsedIIII RMTypeFurnished = iota + 18
+	RMTypeFurnishedNotUsed              RMTypeFurnished = iota + 3
+	RMTypeFurnishedNotUsedII            RMTypeFurnished = iota + 6
+	RMTypeFurnishedNotUsedIII           RMTypeFurnished = iota + 16
+	RMTypeFurnishedNotUsedIIII          RMTypeFurnished = iota + 18
 )
 
 type RMTypeLetType SanitizedInt
@@ -410,7 +410,7 @@ const (
 type RMQualifier SanitizedInt
 
 const (
-	RMQualifierDefault RMQualifier = iota
+	RMQualifierDefault            RMQualifier = iota
 	RMQualifierPriceOnApplication
 	RMQualifierGuidePrice
 	RMQualifierFixedPrice
@@ -423,14 +423,14 @@ const (
 	RMQualifierOffersOver
 	RMQualifierPartTimeBuyRent
 	RMQualifierSharedEquality
-	RMQualifierComingSoon RMQualifier = iota + 3
+	RMQualifierComingSoon         RMQualifier = iota + 3
 )
 
 type PropertyStatus SanitizedInt
 
 // Sale or let types
 const (
-	ForSaleOrToLet PropertyStatus = iota
+	ForSaleOrToLet                            PropertyStatus = iota
 	ForSaleOrToLetUnderOfferOrLet
 	ForSaleOrToLetSoldOrUnderOffer
 	ForSaleOrToLetSSTCOrReserved
@@ -448,7 +448,7 @@ const (
 
 //Let types
 const (
-	LetingsToLet PropertyStatus = iota + 100
+	LetingsToLet      PropertyStatus = iota + 100
 	LetingsLet
 	LetingsUnderOffer
 	LetingsReserved
@@ -457,12 +457,12 @@ const (
 
 // Hidden Properties
 const (
-	NotMarketed PropertyStatus = iota + 200
+	NotMarketed                      PropertyStatus = iota + 200
 	NotMarketedUnderOffer
 	NotMarketedSold
 	NotMarketedSoldSubjectToContract
-	NotMarketedLet PropertyStatus = iota + 200 + 10
-	NotMarketedII  PropertyStatus = iota + 200 + 50
+	NotMarketedLet                   PropertyStatus = iota + 200 + 10
+	NotMarketedII                    PropertyStatus = iota + 200 + 50
 )
 
 // Properties is a collection of the type Property
@@ -665,12 +665,12 @@ type Address struct {
 // 		 Possible values are: pw|PW|pcm|PCM|pq|pa (Is this a per week(pw), per month(pcm), per quarter (pq) or per annum (pa) rental)
 // Value: Property value (in given unit of currency)
 type Price struct {
-	PropertyID uint         `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
-	Qualifier  string       `json:"qualifier" xml:"qualifier,attr"`
-	Currency   string       `json:"currency" xml:"currency,attr"`
-	Display    string       `json:"display" xml:"display,attr"`
-	Rent       string       `json:"rent" xml:"rent,attr"`
-	Value      SanitizedInt `json:"value" xml:",chardata"`
+	PropertyID uint          `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	Qualifier  string        `json:"qualifier" xml:"qualifier,attr"`
+	Currency   string        `json:"currency" xml:"currency,attr"`
+	Display    string        `json:"display" xml:"display,attr"`
+	Rent       string        `json:"rent" xml:"rent,attr"`
+	Value      *SanitizedInt `json:"value" xml:",chardata"`
 }
 
 // StreetView describes the longitude, latitude, yaw, pitch and zoom for the property using Google StreetView.
@@ -729,7 +729,7 @@ type EnvironmentalImpact struct {
 type ParagraphType SanitizedInt
 
 const (
-	StandardTextParagraph ParagraphType = iota
+	StandardTextParagraph    ParagraphType = iota
 	EnergyEfficiencyRatings
 	DisclaimerTextForDetails
 )
@@ -781,7 +781,6 @@ func (u *ParagraphFileIndex) Scan(value interface{}) error {
 }
 
 func (u *ParagraphFileIndex) Value() (driver.Value, error) {
-
 	if u == nil || u.value == "" {
 		return nil, nil
 	}
@@ -798,7 +797,7 @@ func (u *ParagraphFileIndex) Value() (driver.Value, error) {
 // Mixed: The dimensions of the room (if supplied).
 type Paragraph struct {
 	PropertyID  uint                `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
-	ParagraphID int                 `json:"id" xml:"id,attr" gorm:"primary_key" sql:"type:int"`
+	ParagraphID *SanitizedInt       `json:"id" xml:"id,attr" gorm:"primary_key" sql:"type:int"`
 	Type        ParagraphType       `json:"type" xml:"type,attr" json:"Type"`
 	Name        string              `json:"name" xml:"name"`
 	File        *ParagraphFileIndex `json:"file" xml:"file"`
@@ -813,15 +812,15 @@ type Paragraph struct {
 // PropertyID: ID of the parent property
 // BulletID: ID of the Bullet
 type Bullet struct {
-	PropertyID uint         `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
-	BulletID   SanitizedInt `json:"id" xml:"id,attr" json:"ID" gorm:"primary_key" sql:"type:int"`
-	Value      string       `json:"value" xml:",chardata"`
+	PropertyID uint          `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
+	BulletID   *SanitizedInt `json:"id" xml:"id,attr" json:"ID" gorm:"primary_key" sql:"type:int"`
+	Value      string        `json:"value" xml:",chardata"`
 }
 
 type FileURLType SanitizedInt
 
 const (
-	Image FileURLType = iota
+	Image                        FileURLType = iota
 	Map
 	FloorPlan
 	Vebra360Tour
@@ -845,7 +844,7 @@ const (
 // PropertyID: ID of the parent property
 type File struct {
 	PropertyID uint                      `json:"-" gorm:"primary_key" sql:"type:int(10) unsigned"`
-	FileID     SanitizedInt              `json:"id" xml:"id,attr" gorm:"primary_key" sql:"type:int"`
+	FileID     *SanitizedInt             `json:"id" xml:"id,attr" gorm:"primary_key" sql:"type:int"`
 	Type       FileURLType               `json:"type" xml:"type,attr"`
 	Name       string                    `json:"name" xml:"name"`
 	Url        string                    `json:"url" xml:"url"`
