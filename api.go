@@ -1,19 +1,19 @@
 package api
 
 import (
-	"net/http"
-	"time"
-	"fmt"
-	"io"
 	"bytes"
 	"encoding/xml"
+	"fmt"
+	"io"
+	"net/http"
 	"strconv"
+	"time"
 )
 
 const (
 	HeaderAuthorizationKey      = "Authorization"
 	HeaderIfModifiedSinceKey    = "If-Modified-Since"
-	HeaderTokenKey              = "NewToken"
+	HeaderTokenKey              = "Token"
 	HeaderTokenAuthFormatString = "Basic %s"
 )
 
@@ -30,7 +30,7 @@ type Api struct {
 	StatusCode   int
 }
 
-func NewApi(dataFeedId string, username string, password string) (*Api) {
+func NewApi(dataFeedId string, username string, password string) *Api {
 	return &Api{
 		dataFeedId: dataFeedId,
 		credentials: &credentials{
@@ -88,7 +88,6 @@ func (api *Api) GetProperty(branchSummary *BranchSummary, summary PropertySummar
 	}
 	return property, nil
 }
-
 
 func (api *Api) GetPropertyFromChangedFileSummary(summary ChangedFileSummary) (property *Property, err error) {
 	property = new(Property)
@@ -230,7 +229,7 @@ type requestor struct {
 	attempts    int
 }
 
-func buildRequestor(dataFeedId string, credentials *credentials) (*requestor) {
+func buildRequestor(dataFeedId string, credentials *credentials) *requestor {
 	return &requestor{
 		dataFeedID:  dataFeedId,
 		credentials: credentials,
